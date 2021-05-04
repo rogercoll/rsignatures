@@ -2,18 +2,20 @@ package rsignatures
 
 import (
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
-	"fmt"
 	"math/big"
 )
 
 type Ring interface {
 	//Hash of the message will be the encryption key
-	Sign([]byte) (*big.Int, error)
-	Verify()
+	Sign([]byte, int) ([]byte, []byte, error)
+	Verify() bool
 }
 
 type RSARing struct {
+	ringKeys []rsa.PrivateKey
+	ringMems int
 }
 
 func randomBigInt() (*big.Int, error) {
@@ -36,14 +38,21 @@ func (r *RSARing) encrypt(p, x *big.Int) *big.Int {
 	return new(big.Int).SetBytes(mHash)
 }
 
-func (r *RSARing) Sign(ek []byte) (*big.Int, error) {
+//returns the seed and the signatures of all ring members
+func (r *RSARing) Sign(ek []byte, round int) ([]byte, [][]byte, error) {
+	s := make([][]byte, len(r.ringKeys))
 	ekp := new(big.Int).SetBytes(ek)
 	u, err := randomBigInt()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	v := r.encrypt(ekp, u)
-	fmt.Println(v)
-	return v, nil
+	c := new(big.Int).Set(v)
+	for i := 0; i < len(r.ringKeys)-1; i++ {
+		if i != round {
+			//random created keys should sign the value here
+		}
+	}
+	return c.Bytes(), s, nil
 
 }
