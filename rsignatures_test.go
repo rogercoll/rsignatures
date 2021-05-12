@@ -1,8 +1,8 @@
 package rsignatures
 
 import (
-	"crypto/rsa"
 	"crypto/rand"
+	"crypto/rsa"
 	mrand "math/rand"
 	"testing"
 )
@@ -49,3 +49,30 @@ func TestSign(t *testing.T) {
 		t.Errorf("Signature verification mismatch: got %t, want %t", notok2, false)
 	}
 }
+
+func benchmarkSign(i int, b *testing.B) {
+	partyKeys := make([]rsa.PublicKey, i)
+	signerRound := mrand.Intn(len(partyKeys))
+	var signerKey rsa.PrivateKey
+	for i, _ := range partyKeys {
+		randKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if i == signerRound {
+			signerKey = *randKey
+		}
+		partyKeys[i] = *randKey.Public().(*rsa.PublicKey)
+	}
+	rsaRing := RSARing{ringKeys: partyKeys, signer: signerKey}
+	_, _, err := rsaRing.Sign([]byte("hello"), signerRound)
+	if err != nil {
+		b.Fatal(err)
+	}
+}
+
+func BenchmarkSign5(b *testing.B)   { benchmarkSign(5, b) }
+func BenchmarkSign10(b *testing.B)  { benchmarkSign(10, b) }
+func BenchmarkSign20(b *testing.B)  { benchmarkSign(20, b) }
+func BenchmarkSign50(b *testing.B)  { benchmarkSign(50, b) }
+func BenchmarkSign100(b *testing.B) { benchmarkSign(100, b) }
