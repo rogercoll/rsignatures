@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/sha256"
-	"log"
 	"math/big"
 )
 
@@ -16,8 +15,8 @@ type Ring interface {
 }
 
 type RSARing struct {
-	ringKeys []rsa.PrivateKey
-	ringMems int
+	ringKeys []rsa.PublicKey
+	signer	 rsa.PrivateKey
 }
 
 func randomBigInt() (*big.Int, error) {
@@ -86,7 +85,7 @@ func (r *RSARing) Sign(ek []byte, round int) (*big.Int, []*big.Int, error) {
 			v = r.encrypt(ekp, new(big.Int).Xor(v, e))
 		}
 	}
-	sz := r.g(new(big.Int).Xor(v, u), r.ringKeys[round].D, r.ringKeys[round].N)
+	sz := r.g(new(big.Int).Xor(v, u), r.signer.D, r.signer.N)
 	s[round] = sz
 	return c, s, nil
 }
@@ -101,7 +100,5 @@ func (r *RSARing) Verify(messHash []byte, seed *big.Int, signatures []*big.Int) 
 		e := r.g(s, big.NewInt(int64(r.ringKeys[i].E)), r.ringKeys[i].N)
 		result = r.encrypt(ekp, new(big.Int).Xor(result, e))
 	}
-	log.Println(result)
-	log.Println(seed)
 	return result.String() == seed.String()
 }
