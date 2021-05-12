@@ -15,11 +15,11 @@ type Ring interface {
 }
 
 type RSARing struct {
-	ringKeys []rsa.PublicKey
-	signer   rsa.PrivateKey
+	ringKeys []*rsa.PublicKey
+	signer   *rsa.PrivateKey
 }
 
-func NewRSARing(_ringKeys []rsa.PublicKey, _signer rsa.PrivateKey) *RSARing {
+func NewRSARing(_ringKeys []*rsa.PublicKey, _signer *rsa.PrivateKey) *RSARing {
 	return &RSARing{ringKeys: _ringKeys, signer: _signer}
 }
 

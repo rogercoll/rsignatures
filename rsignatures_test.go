@@ -8,18 +8,18 @@ import (
 )
 
 func TestSign(t *testing.T) {
-	partyKeys := make([]rsa.PublicKey, 10)
+	partyKeys := make([]*rsa.PublicKey, 10)
 	signerRound := mrand.Intn(len(partyKeys))
-	var signerKey rsa.PrivateKey
+	var signerKey *rsa.PrivateKey
 	for i, _ := range partyKeys {
 		randKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if i == signerRound {
-			signerKey = *randKey
+			signerKey = randKey
 		}
-		partyKeys[i] = *randKey.Public().(*rsa.PublicKey)
+		partyKeys[i] = randKey.Public().(*rsa.PublicKey)
 	}
 	rsaRing := RSARing{ringKeys: partyKeys, signer: signerKey}
 	seed, sig, err := rsaRing.Sign([]byte("hello"), signerRound)
@@ -42,7 +42,7 @@ func TestSign(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	partyKeys[mrand.Intn(len(partyKeys))] = *randKey.Public().(*rsa.PublicKey)
+	partyKeys[mrand.Intn(len(partyKeys))] = randKey.Public().(*rsa.PublicKey)
 	forgedRsaRing := RSARing{ringKeys: partyKeys}
 	notok2 := forgedRsaRing.Verify([]byte("hello"), seed, sig)
 	if notok2 {
@@ -51,18 +51,18 @@ func TestSign(t *testing.T) {
 }
 
 func benchmarkSign(i int, b *testing.B) {
-	partyKeys := make([]rsa.PublicKey, i)
+	partyKeys := make([]*rsa.PublicKey, i)
 	signerRound := mrand.Intn(len(partyKeys))
-	var signerKey rsa.PrivateKey
+	var signerKey *rsa.PrivateKey
 	for i, _ := range partyKeys {
 		randKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			b.Fatal(err)
 		}
 		if i == signerRound {
-			signerKey = *randKey
+			signerKey = randKey
 		}
-		partyKeys[i] = *randKey.Public().(*rsa.PublicKey)
+		partyKeys[i] = randKey.Public().(*rsa.PublicKey)
 	}
 	rsaRing := RSARing{ringKeys: partyKeys, signer: signerKey}
 	_, _, err := rsaRing.Sign([]byte("hello"), signerRound)
