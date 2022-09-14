@@ -5,9 +5,11 @@ import (
 	"crypto/rsa"
 	mrand "math/rand"
 	"testing"
+	"time"
 )
 
 func TestSign(t *testing.T) {
+	mrand.Seed(time.Now().UnixNano())
 	partyKeys := make([]*rsa.PublicKey, 10)
 	signerRound := mrand.Intn(len(partyKeys))
 	var signerKey *rsa.PrivateKey
