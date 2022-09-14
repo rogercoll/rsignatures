@@ -64,20 +64,16 @@ func (r *RSARing) Sign(ek []byte, round int) (*big.Int, []*big.Int, error) {
 	v := r.encrypt(ekp, u)
 	c := new(big.Int).Set(v)
 
-	loopKeys := make([]int, len(r.ringKeys)-1)
 	for i := 0; i < len(r.ringKeys)-1; i++ {
-		loopKeys[i] = (round + i + 1) % len(r.ringKeys)
-	}
-
-	for _, i := range loopKeys {
+		iter := (round + i + 1) % len(r.ringKeys)
 		randKey, err := randomBigInt()
 		if err != nil {
 			return nil, nil, err
 		}
-		s[i] = randKey
-		e := r.g(s[i], big.NewInt(int64(r.ringKeys[i].E)), r.ringKeys[i].N)
+		s[iter] = randKey
+		e := r.g(s[iter], big.NewInt(int64(r.ringKeys[iter].E)), r.ringKeys[iter].N)
 		v = r.encrypt(ekp, new(big.Int).Xor(v, e))
-		if (i+1)%len(r.ringKeys) == 0 {
+		if (iter+1)%len(r.ringKeys) == 0 {
 			c = new(big.Int).Set(v)
 		}
 	}
